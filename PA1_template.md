@@ -29,7 +29,8 @@ There are a total of 17,568 observations in the dataset.
 ## Loading and preprocessing the data
 We will first load the required libraries and dataset into r.
 
-```{r}
+
+```r
 library(plyr)
 library(lattice)
 Activity<-read.csv("C:/Users/Sameer/RepData_PeerAssessment1/activity.csv")
@@ -39,7 +40,8 @@ Now we will remove the missing values from the dataset to make it suitable for p
 
 We also need to summarise the data so that we have mean,median and total number of steps taken per day. We then use this dataset for further analysis.
 
-```{r}
+
+```r
 Activity_Clean<-Activity[-which(is.na(Activity$steps)),]
 
 Activity_Smry<-ddply(Activity_Clean,
@@ -48,37 +50,42 @@ Activity_Smry<-ddply(Activity_Clean,
                      Mean_Step=mean(steps),
                      Median_Step=median(steps),
                      Tot_Steps=sum(steps))
-
 ```
 
 ## Histogram of the total number of steps taken per day
 
-```{r fig.width=7, fig.height=6}
+
+```r
 hist(Activity_Smry$Tot_Steps,
      breaks=nrow(Activity_Smry),
      xlab="Steps", 
      main="Frequency of Total Number Of Steps per day-Plot 1")
 ```
 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+
 ## What is mean total number of steps taken per day?
-```{r}
+
+```r
 Mean<-mean(Activity_Smry$Tot_Steps)
 
 Median<-median(Activity_Smry$Tot_Steps)
 ```
 
-**Mean** of the number of steps taken per day is equal to `r Mean` and **Median** of the number of steps taken per day is equal to `r Median`.
+**Mean** of the number of steps taken per day is equal to 1.0766 &times; 10<sup>4</sup> and **Median** of the number of steps taken per day is equal to 10765.
 
 
 ## What is the average daily activity pattern?
 We will first summarise data to include mean steps taken per interval.
-```{r}
+
+```r
 Activity_interval_Smry<-ddply(Activity_Clean,c("interval"),
                               summarise,Mean_Step=mean(steps))
 ```
 
 ### Time Series Plot and mean number of steps taken in each interval
-```{r fig.width=7, fig.height=6}
+
+```r
 plot(x=Activity_interval_Smry$interval,
      y=Activity_interval_Smry$Mean_Step,
      type="l",xlab="interval",
@@ -87,28 +94,33 @@ plot(x=Activity_interval_Smry$interval,
 abline(v=Activity_interval_Smry[which(Activity_interval_Smry$Mean_Step==max(Activity_interval_Smry$Mean_Step)),"interval"])
 ```
 
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
 
-```{r}
+
+
+```r
 Max_Activity_Interval<-Activity_interval_Smry[which(Activity_interval_Smry$Mean_Step==max(Activity_interval_Smry$Mean_Step)),"interval"]
 
 Max_Steps<-max(Activity_interval_Smry$Mean_Step)
 ```
 
-**Interval** with maximun number of steps is equal to `r Max_Activity_Interval` and **Maximum Number of Steps** taken is equal to `r Max_Steps`
+**Interval** with maximun number of steps is equal to 835 and **Maximum Number of Steps** taken is equal to 206.1698
 
 # Imputing missing values
 First we will calculate the total number of missing values
-```{r}
+
+```r
 tot_missing_values<-length(which(is.na(Activity$steps)))
 ```
 
-**Total number of missing values** is equal to `r tot_missing_values`
+**Total number of missing values** is equal to 2304
 
 We will impute missing values with mean number of steps taken in that interval and
 suumarise the new dataset to include Mean, Media and Total number of steps taken per
 day.
 
-```{r}
+
+```r
 Activity = transform(Activity, steps = ifelse(is.na(steps), mean(Activity[Activity$interval==interval,"steps"], na.rm=TRUE), steps))
 
 Activity_Smry_2<-ddply(Activity,c("date"),
@@ -119,24 +131,29 @@ Activity_Smry_2<-ddply(Activity,c("date"),
 ```
 
 ## Histogram of the total number of steps taken per day 
-```{r}
+
+```r
 hist(Activity_Smry_2$Tot_Steps,
      breaks=nrow(Activity_Smry),
      xlab="Steps", 
      main="Frequency of Total Number Of Steps per day-Plot 2")
 ```
 
-```{r}
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
+
+
+```r
 Mean_New<-mean(Activity_Smry_2$Tot_Steps)
 Median_New<-median(Activity_Smry_2$Tot_Steps)
 ```
 ##Are there differences in activity patterns between weekdays and weekends?
-**New Mean** is equual to `r Mean_New` and **New Median** is `r Median_New`.
+**New Mean** is equual to 1.0766 &times; 10<sup>4</sup> and **New Median** is 1.0766 &times; 10<sup>4</sup>.
 Imputing missing values with Mean does not change the new mean and median.
 
 ## Activity Analysis by Weekdays and Weekends
 We wil first add a new column **"day"** with two levels **"Weekday"** and **"Weekend"**"
-```{r}
+
+```r
 Activity$day <- ifelse(weekdays(as.Date(Activity$date)) %in% c("Saturday","Sunday"),
                        "weekend","weekday")
 
@@ -146,7 +163,8 @@ Activity$day<-as.factor(Activity$day)
 
 We will summarise the data by "day" and "interval" to include Mean, Median and Total Number of Steps taken by in each interval segmented by "Weekend" and "Weekday" and then scale the data to standardise it.
 
-```{r}
+
+```r
 ActSmry_Day_Intvl<-ddply(Activity,
                          c("interval","day"),
                          summarise,
@@ -160,7 +178,8 @@ ActSmry_Day_Intvl$Standardised_Steps<- as.numeric(scale(ActSmry_Day_Intvl$Mean_S
 
 
 ## Time Series Plot segmented by "Weekday" and "Weekend"
-```{r}
+
+```r
 xyplot(Standardised_Steps ~ interval|day, 
        group=day,
        data=ActSmry_Day_Intvl, 
@@ -170,3 +189,5 @@ xyplot(Standardised_Steps ~ interval|day,
        distribute.type=TRUE, layout = c(1, 2),
        col="blue", lwd=1, type='l')
 ```
+
+![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14.png) 
